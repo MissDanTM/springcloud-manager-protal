@@ -8,6 +8,13 @@ export function queryTenant(data) {
   })
 }
 
+export function queryTenantAll() {
+  return request({
+    url: '/organization/tenant/all',
+    method: 'post',
+  })
+}
+
 export function getUserMsg(id) {
   return request({
     url: '/organization/tenant/user' + id,
@@ -42,5 +49,13 @@ export function deleteTenant(id) {
   return request({
     url: '/organization/tenant/' + id,
     method: 'delete'
+  })
+}
+
+export function getUserCondition(data) {
+  return request({
+    url: '/organization/tenant/user/condtions',
+    method: 'post',
+    data
   })
 }

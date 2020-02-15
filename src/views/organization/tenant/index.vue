@@ -37,22 +37,29 @@
     </div>
 
     <!--列表-->
-    <el-table :data="list" v-loading.body="listLoading" border fit highlight-current-row style="width: 100%">
-      <el-table-column type="expand"  @click="getUserMsg(scope.row.id)" prop="userMsg">
-         <template slot-scope="scope" >
-           <el-table  :data="scope.row.userMsg" >
-              <el-table-column prop="name" label="用户名" sortable align="center">
+    <el-table :data="list" @expand-change="queryCondition" v-loading.body="listLoading" border fit highlight-current-row style="width: 100%">
+      <el-table-column type="expand" prop="userMsg">
+         <template slot-scope="scope">
+           <el-table  :data="scope.row.userMsg" border>
+              <el-table-column prop="userName" label="用户名" align="center">
                  <template slot-scope="scope">
-                   <span>{{scope.row.name}}</span>
+                   <span>{{scope.row.userName}}</span>
                  </template>
               </el-table-column>
-              <el-table-column prop="introd" label="简介" sortable align="center">
+              <el-table-column prop="description" label="简介" align="center">
                  <template slot-scope="scope">
-                   <span>{{scope.row.introd}}</span>
+                   <span>{{scope.row.description}}</span>
                  </template>
               </el-table-column>
-
            </el-table>
+           <div class="pagination-container">
+             <el-pagination background
+                            @current-change="handleUserCurrentChange"
+                            :current-page="userQuery.current"
+                            :page-size="userQuery.size"
+                            layout="total, prev, pager, next, jumper" :total="scope.row.total">
+             </el-pagination>
+           </div>
         </template>
       </el-table-column>
       <el-table-column type="index" width="50" align="center" label="ID"/>
@@ -155,7 +162,7 @@
 </template>
 
 <script>
-  import { queryTenant, getUserMsg, getTenant, createTenant, updateTenant, deleteTenant } from '@/api/organization/tenant'
+  import { queryTenant, getUserMsg, getTenant, getUserCondition, createTenant, updateTenant, deleteTenant } from '@/api/organization/tenant'
 
   import waves from '@/directive/waves'
 
@@ -176,6 +183,12 @@
           current: 1,
           size: 10
         },
+        userQuery: {
+          current: 1,
+          size: 10,
+          tenantId:null
+        },
+        currentRow:null,
         // 用户状态
         enabled: [{code:true,name:'可用',value:true},{code:false,name:'不可用',value:false}],
         dialogStatus: 'create',
@@ -189,7 +202,7 @@
           description: [{ min: 0, max: 500, message: '描述在500字符以内', trigger: 'blur' }],
         },
         // 创建或修改用户临时对象
-        temp: {}
+        temp: {},
       }
     },
     filters: {
@@ -238,6 +251,10 @@
       handleCurrentChange(val) {
         this.listQuery.current = val
         this.queryTenant()
+      },
+      handleUserCurrentChange(val) {
+        this.userQuery.current = val
+        this.getUser()
       },
       /**
        * 重置添加表单
@@ -318,11 +335,18 @@
       /**
        * 查询关联用户数据
        */
-      getUserMsg(id) {
-        /* getUserMsg(id).then(response => {
+      queryCondition(row, expandedRows) {
+        this.userQuery.tenantId=row.id
+        this.currentRow = row
+        this.getUser()
+      },
+      getUser(){
+        getUserCondition(this.userQuery).then(response => {
+          //row.userMsg = response.data.records
+          this.currentRow.userMsg=response.data.records
+          this.currentRow.total = response.data.total
+        })
 
-        }) */
-        this.list.
       },
       /**
        * 修改租户信息

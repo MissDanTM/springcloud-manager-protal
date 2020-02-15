@@ -135,7 +135,7 @@
         <el-form-item label="手机号" prop="mobile">
           <el-input v-model="temp.mobile" placeholder="请输入用户手机号"></el-input>
         </el-form-item>
-        <el-form-item label="密码" prop="password">
+        <el-form-item v-if="dialogStatus=='create'" label="密码" prop="password">
           <!--:disabled="dialogStatus=='edit'"-->
           <el-input
             v-model="temp.password" placeholder="请输入用户密码"></el-input>
@@ -151,7 +151,15 @@
             </el-option>
           </el-select>
         </el-form-item>
-
+        <el-form-item label="租户" prop="tenants">
+          <el-select v-model="temp.tenantId" clearable style="width: 100%;" placeholder="请选择">
+              <el-option
+                v-for="item in tenantList"
+                :label="item.tenantName"
+                :value="item.id">
+              </el-option>
+            </el-select>
+        </el-form-item>
         <el-form-item label="用户详情" prop="description">
           <el-input :rows="5"
                     type="textarea"
@@ -172,6 +180,7 @@
 
 <script>
   import { queryUser, getUser, createUser, updateUser, deleteUser } from '@/api/organization/user'
+  import { queryTenantAll } from '@/api/organization/tenant'
   import { getAllRoles } from '@/api/organization/role'
 
   import waves from '@/directive/waves'
@@ -197,6 +206,7 @@
         // 用户状态
         userStatus: ['lock', 'deleted', 'ok'],
         roleList: [],
+        tenantList: [],
         dialogStatus: 'create',
         dialogFormVisible: false,
         // 表单校验规则
@@ -253,6 +263,14 @@
           })
         }
       },
+      /**
+       * 租户列表
+       */
+      getTenants() {
+        queryTenantAll().then(response => {
+          this.tenantList = response.data
+        })
+      },
       // 查询过滤器
       handleFilter() {
         this.listQuery.current = 1
@@ -292,6 +310,7 @@
         this.dialogStatus = 'create'
         this.dialogFormVisible = true
         this.resetForm()
+        this.getTenants()
         this.$nextTick(() => {
           this.$refs['dataForm'].clearValidate()
         })
@@ -302,6 +321,8 @@
       createData() {
         this.$refs['dataForm'].validate((valid) => {
           if (valid) {
+            this.temp.tenantId=this.temp.tenantId&&this.temp.tenantId!=''?this.temp.tenantId:null
+            debugger
             createUser(this.temp).then(() => {
               this.dialogFormVisible = false
               this.$notify({
@@ -326,6 +347,7 @@
           this.listLoading = false
           this.dialogStatus = 'edit'
           this.dialogFormVisible = true
+          this.getTenants()
         })
         this.$nextTick(() => {
           this.$refs['dataForm'].clearValidate()
@@ -337,6 +359,8 @@
       updateData() {
         this.$refs['dataForm'].validate((valid) => {
           if (valid) {
+            this.temp.tenantId=this.temp.tenantId&&this.temp.tenantId!=''?this.temp.tenantId:null
+            debugger
             updateUser(this.temp).then(() => {
               this.dialogFormVisible = false
               this.$notify({
@@ -387,4 +411,3 @@
     }
   }
 </script>
-
